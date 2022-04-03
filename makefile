@@ -1,4 +1,6 @@
 all:
 	g++ demoSdl.cpp -o testing -lSDL2
+	g++ justdemo.cpp -o testing2 -lSDL2 -lSDL2_image
 remove:
 	rm -r testing
+	rm -r testing2
