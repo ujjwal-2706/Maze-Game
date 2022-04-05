@@ -1,2 +1,7 @@
 1. Always while using SDL library, remember to initially initialize to NULL
 2. Don't forget to deallocate all surfaces and widows
+3. SDL_Window is like the pixel(final display) we want to display and SDL_Render is like the 
+    the settings of that window which will change
+4. Think of rendercopy means applying the thing on top of the previous thing like a canvas
+5. In order to move the player think of using the destination rectangle in the updation(SDL_Rect)
+6. In order to get the time use SDL_GetTicks() [Not the absolute one]
