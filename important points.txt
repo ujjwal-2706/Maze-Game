@@ -5,3 +5,7 @@
 4. Think of rendercopy means applying the thing on top of the previous thing like a canvas
 5. In order to move the player think of using the destination rectangle in the updation(SDL_Rect)
 6. In order to get the time use SDL_GetTicks() [Not the absolute one]
+7. For 1 window exactly 1 renderer will be used
+8. All we have to do is use the rendercopy function in the order of layers you want to display
+then just move or change the textures accordingly and with that we will be able to make a moving
+and user controlled game
