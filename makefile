@@ -1,7 +1,4 @@
 all:
-	g++ justdemo.cpp -o testing2 -lSDL2 -lSDL2_image
-	g++ mygame.cpp -o game -lSDL2 -lSDL2_image
-remove:
-	rm -r testing
-	rm -r testing2
+	g++ game.cpp -o game -lSDL2 -lSDL2_image
+clean:
 	rm -r game
