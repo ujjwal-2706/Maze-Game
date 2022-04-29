@@ -2,12 +2,15 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <time.h>
+#include <vector>
 
 using namespace std;
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
+TTF_Font* meterFont = NULL;
 
 const int SCREEN_WIDTH = 1720;
 const int SCREEN_HEIGHT = 1000;
@@ -54,6 +57,13 @@ bool initialize()
 					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 					success = false;
 				}
+
+				//Initialize SDL_ttf
+				if( TTF_Init() == -1 )
+				{
+					printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
+					success = false;
+				}
 			}
 		}
 	}
@@ -71,6 +81,7 @@ void destroy()
 
 	//Quit SDL subsystems
 	IMG_Quit();
+	TTF_Quit();
 	SDL_Quit();
 }
 
@@ -89,6 +100,18 @@ class Textures
 			width = 0;
 			height = 0;
 		}
+
+		void setTexture(SDL_Texture* text)
+		{
+			texture = text;
+		}
+
+		void setDimension(int w,int h)
+		{
+			width = w;
+			height = h;
+		}
+
 
 		// This function will destroy the texture
 		void free()
@@ -183,6 +206,46 @@ class Player
 		{
 			player_image.free();
 		}
+
+		// This function will give the texture of player meter to be displayed
+		Textures displayMeter()
+		{
+			Textures meter;
+			string meterText = "";
+			meterText = meterText + "Coins : " + to_string(coins) + " ";
+			meterText = meterText + "Stamina : " + to_string(stamina) + " ";
+			meterText = meterText + "Health : " + to_string(health) + " ";
+			meterText = meterText + "Motivation : " + to_string(motivation);
+			//Open the font
+			meterFont = TTF_OpenFont( "Fonts/ABeeZee-Regular.ttf", 28 );
+			SDL_Color textColor = {0,0,0};
+			if( meterFont == NULL )
+			{
+				printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+				return meter;
+			}
+			else
+			{
+				//Render text surface
+				SDL_Surface* textSurface = TTF_RenderText_Solid( meterFont, meterText.c_str(), textColor );
+				if( textSurface == NULL )
+				{
+					printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+					return meter;
+				}
+				else
+				{
+					SDL_Texture* display = SDL_CreateTextureFromSurface(renderer,textSurface);
+					meter.setTexture(display);
+					meter.setDimension(textSurface->w,textSurface->h);
+					SDL_FreeSurface(textSurface);
+					//global font
+					TTF_CloseFont( meterFont );
+					meterFont = NULL;
+					return meter;
+				}
+			}
+		}
 		
 		// This function will display the player
 		void render()
@@ -246,3 +309,44 @@ class Player
 
 };
 
+
+// Coordinates class
+class Coordinates
+{
+	public:
+		int x,y;
+};
+
+// This function will be called to give the location of different coins randomly 
+vector<Coordinates> randomCoins()
+{
+	int numCoins = 0;
+	int totalCoins = 200;
+	vector<Coordinates> result;
+	srand(time(0));
+	while (numCoins < totalCoins)
+	{
+		int x = rand() % SCREEN_WIDTH;
+		int y = rand() % SCREEN_HEIGHT;
+		Coordinates coordinate;
+		coordinate.x = x;
+		coordinate.y = y;
+		result.push_back(coordinate);
+		numCoins++;
+	}
+	return result;
+}
+
+// height and width of coins are 20 pixel each
+void setCoins(vector<Coordinates> coinsList, Textures coin)
+{
+	for(int i =0; i < coinsList.size();i++)
+	{
+		SDL_Rect destination;
+		destination.x = coinsList[i].x;
+		destination.y = coinsList[i].y;
+		destination.w = 20;
+		destination.h = 20;
+		coin.render(NULL,&destination,true);
+	}
+}

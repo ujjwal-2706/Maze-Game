@@ -10,6 +10,8 @@ void get(string val)
 int main()
 {
 	string val = "hello";
+	val = val + to_string(34);
+	cout << val << endl;
 	cout << rand() << endl;
 	cout << rand() << endl;
 	return 0;
