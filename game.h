@@ -5,7 +5,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <time.h>
 #include <vector>
-// For the treasure box change the move method later
+
 using namespace std;
 
 SDL_Window* window = NULL;
@@ -91,6 +91,21 @@ void destroy()
 	SDL_Quit();
 }
 
+// Now we will implement a function to produce random gift from the treasure box
+vector<int> gift()
+{
+	srand(time(0));
+	int motivation = (rand() % 100) - 50;
+	int stamina = (rand() % 100) - 50;
+	int health = (rand() % 100) - 50;
+	int coins = (rand() % 100) - 50;
+	vector<int> result;
+	result.push_back(motivation);
+	result.push_back(stamina);
+	result.push_back(health);
+	result.push_back(coins);
+	return result;
+}
 
 // This class will handle the different textures used in the game
 class Textures
@@ -434,6 +449,15 @@ class Player
 			vector<vector<int>> meterIncrease;
 			meterIncrease =  checkAllCollisions(player_rect,coinList,boxes);
 			coins += meterIncrease[0][0];
+			int box = meterIncrease[0][1];
+			for(int i =0; i < box; i++)
+			{
+				vector<int> value = gift();
+				motivation += value[0];
+				stamina += value[1];
+				health += value[2];
+				coins += value[3];
+			}
 			// we have now catched the coins and boxes collected in meterIncrease vector
 			return meterIncrease;
 			// For the treasure box will do later
@@ -515,3 +539,9 @@ void setTreasure(vector<Coordinates> boxes, Textures box)
 		}
 	}
 }
+
+
+// Now what is left is buildings, their collisions, professor and collision, ATM and collision
+// Batchmates and collision
+// Messages to be popped up with meeting people and the start instruciton and music 
+// The winning strategy and the timer
