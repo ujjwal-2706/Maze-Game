@@ -20,6 +20,8 @@ const int TREASURE_WIDTH = 50;
 const int TREASURE_HEIGHT = 50;
 const int PLAYER_WIDTH = 40;
 const int PLAYER_HEIGHT = 80;
+const int BUILDING_WIDTH = 200;
+const int BUILDING_HEIGHT = 200;
 
 // This function will start and open our game window
 bool initialize()
@@ -107,6 +109,8 @@ vector<int> gift()
 	return result;
 }
 
+
+
 // This class will handle the different textures used in the game
 class Textures
 {
@@ -177,15 +181,15 @@ class Textures
 
 		// This function will render the texture at the corresponding rect with the start rect
 		// full checks if the full texture needs to be rendered or a part of it(in case of background)
-		void render(SDL_Rect* start, SDL_Rect* destination, bool full)
+		void render(SDL_Rect* start, SDL_Rect* destination, bool full, double angle = 0.0)
 		{
 			if(!full)
 			{
-				SDL_RenderCopy(renderer,texture,start,destination);
+				SDL_RenderCopyEx(renderer,texture,start,destination,angle,NULL,SDL_FLIP_NONE);
 			}
 			else
 			{
-				SDL_RenderCopy(renderer,texture,NULL,destination);
+				SDL_RenderCopyEx(renderer,texture,NULL,destination,angle,NULL,SDL_FLIP_NONE);
 			}
 		}
 
@@ -294,6 +298,24 @@ vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> 
 	return result;
 }
 
+
+// This function will give the building with which player is colliding
+Coordinates building_collision(SDL_Rect player_pos, vector<Coordinates> buildings)
+{
+	for(int i =0; i < buildings.size(); i++)
+	{
+		SDL_Rect building = {buildings[i].x,buildings[i].y,BUILDING_WIDTH,BUILDING_HEIGHT};
+		if(checkCollision(player_pos,building))
+		{
+			return buildings[i];
+		}
+	}
+	Coordinates result;
+	result.x = -1;
+	result.y = -1;
+	return result;
+}
+
 // This function will update the coins collided value to true
 vector<Coordinates> updateCoins(vector<Coordinates> coinsList,vector<int> coinIndex)
 {
@@ -324,6 +346,8 @@ class Player
 		int x,y;
 		int velX = 0;
 		int velY = 0;
+		// this will determine the angle of rotation of player
+		double angle = 0.0;
 		Textures player_image;
 	public:
 
@@ -390,21 +414,35 @@ class Player
 		void render()
 		{
 			SDL_Rect destination = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
-			SDL_RenderCopy(renderer,player_image.getTexture(),NULL,&destination);
+			SDL_RenderCopyEx(renderer,player_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
 		}
 
 		// Handling the movement of player by changing its velocity 
-		void handleEvent(SDL_Event event)
+		vector<int> handleEvent(SDL_Event event, vector<Coordinates> buildings)
 		{
-			// If a key is pressed
+			SDL_Rect player_pos = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
+			// If a key is pressed and no collision with building 
 			if(event.type == SDL_KEYDOWN && event.key.repeat == 0)
 			{
 				switch( event.key.keysym.sym)
 				{
-					case SDLK_UP: velY -= 10; break;
-					case SDLK_DOWN: velY += 10; break;
+					case SDLK_UP: velY -= 10; angle += 60; break;
+					case SDLK_DOWN: velY += 10; angle -= 60;  break;
 					case SDLK_LEFT: velX -= 10; break;
 					case SDLK_RIGHT: velX += 10; break;
+					case SDLK_0:
+						if(building_collision(player_pos,buildings).x != -1)
+						{
+							vector<int> result;
+							result.push_back(0);
+							return result;
+						}
+						break;
+					case SDLK_1:
+						vector<int> result;
+						result.push_back(1);
+						return result;
+						break;
 				}
 			}
 
@@ -414,12 +452,14 @@ class Player
 				//Adjust the velocity
 				switch( event.key.keysym.sym )
 				{
-					case SDLK_UP: velY += 10; break;
-					case SDLK_DOWN: velY -= 10; break;
+					case SDLK_UP: velY += 10; angle -= 60; break;
+					case SDLK_DOWN: velY -= 10; angle += 60; break;
 					case SDLK_LEFT: velX += 10; break;
 					case SDLK_RIGHT: velX -= 10; break;
 				}
 			}
+			vector<int> temp;
+			return temp;
 		}
 
 		// This will move the player whenever this is called
@@ -429,17 +469,17 @@ class Player
     		x += velX;
 
     		//If the player went too far to the left or right
-    		if( ( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH ) )
+    		if( ( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH ))
     		{
         		//Move back
-        		x -= velX;
+        		x -=  velX;
     		}
 
     		//Move the player up or down
     		y += velY;
 
     		//If the player went too far up or down
-    		if( ( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT ) )
+    		if( ( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT ))
 			{
 				//Move back
 				y -= velY;
@@ -541,7 +581,15 @@ void setTreasure(vector<Coordinates> boxes, Textures box)
 }
 
 
+
 // Now what is left is buildings, their collisions, professor and collision, ATM and collision
 // Batchmates and collision
 // Messages to be popped up with meeting people and the start instruciton and music 
 // The winning strategy and the timer
+
+// Added the rotation of player while moving
+
+// Add the feature of enter press in order to meet professor, then pop up the screen which is gone
+// after some button or mouse press, do this for 1 building then the similar logic can
+// be implemented for yulu stand, and football ground. then finally music will be left
+// for the background tiles, create another matrix coordinate
