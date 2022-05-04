@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
         bool quit = false;
         SDL_Event event;
         Textures background;
-        Player light("Photos/light-demo.png");
+        Player light("Photos/light-demo.png", "Photos/yulu-light-demo.png");
         background.loadTexture("Photos/background-demo.png");
         SDL_Rect start = {200,200,200,200};
         SDL_Rect meterDisplay = {0,0,1000,25};
@@ -45,6 +45,16 @@ int main(int argc, char* argv[])
         Textures textTexture;
         vector<int> showText;
         SDL_Rect text = {0,SCREEN_HEIGHT - 300,SCREEN_WIDTH,300};
+
+        // We are gonna test our yulu stand features
+        SDL_Rect yuluRect = {700,700,YULUSTAND_WIDTH,YULUSTAND_HEIGHT};
+        Coordinates yuluStand;
+        yuluStand.x = 700;
+        yuluStand.y = 700;
+        Textures yulu;
+        vector<Coordinates> stand;
+        stand.push_back(yuluStand);
+        yulu.loadTexture("Photos/yulu-stand-demo.png");
         while(!quit)
         {
             while(SDL_PollEvent(&event) != 0)
@@ -53,7 +63,7 @@ int main(int argc, char* argv[])
                 {
                     quit = true;
                 }
-                showText = light.handleEvent(event,buildings);
+                showText = light.handleEvent(event,buildings,stand);
                 if(showText.size() > 0 && showText[0] == 0)
                 {
                     textTexture.setTexture(display_text.getTexture());
@@ -74,6 +84,7 @@ int main(int argc, char* argv[])
             setCoins(coinList,coin);
             setTreasure(boxes,box);
             building.render(NULL,&building_destination,true);
+            yulu.render(NULL, &yuluRect,true);
             meter.render(NULL,&meterDisplay,true);
             textTexture.render(NULL,&text,true);
             SDL_RenderPresent(renderer);
