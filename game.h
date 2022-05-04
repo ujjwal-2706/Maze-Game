@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <time.h>
 #include <vector>
 
@@ -11,6 +12,11 @@ using namespace std;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 TTF_Font* meterFont = NULL;
+Mix_Music* music1 = NULL;
+Mix_Chunk* coinCollect = NULL;
+Mix_Chunk* treasureCollect = NULL;
+Mix_Chunk* yuluChange = NULL;
+Mix_Chunk* thanks = NULL;
 
 const int SCREEN_WIDTH = 1720;
 const int SCREEN_HEIGHT = 1000;
@@ -18,8 +24,8 @@ const int COIN_WIDTH = 30;
 const int COIN_HEIGHT = 30;
 const int TREASURE_WIDTH = 50;
 const int TREASURE_HEIGHT = 50;
-const int PLAYER_WIDTH = 40;
-const int PLAYER_HEIGHT = 80;
+const int PLAYER_WIDTH = 200;
+const int PLAYER_HEIGHT = 150;
 const int BUILDING_WIDTH = 200;
 const int BUILDING_HEIGHT = 200;
 const int YULUSTAND_WIDTH = 200;
@@ -74,6 +80,13 @@ bool initialize()
 					printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
 					success = false;
 				}
+
+				 //Initialize SDL_mixer
+                if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+                {
+                    printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+                    success = false;
+                }
 			}
 		}
 	}
@@ -81,8 +94,49 @@ bool initialize()
 	return success;
 }
 
+void loadAudio()
+{
+	coinCollect = Mix_LoadWAV("Audio/coin.wav");
+	if( coinCollect == NULL )
+    {
+        printf( "Failed to load coin collect music! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
+	treasureCollect = Mix_LoadWAV("Audio/treasure.wav");
+	if( treasureCollect == NULL )
+    {
+        printf( "Failed to load treasure collect music! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
+	yuluChange = Mix_LoadWAV("Audio/yulu-change.wav");
+	if( yuluChange == NULL )
+    {
+        printf( "Failed to load yulu music! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
+	thanks = Mix_LoadWAV("Audio/thanks.wav");
+	if( thanks == NULL )
+    {
+        printf( "Failed to load thanks music! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
+	music1 = Mix_LoadMUS("Audio/music1.wav");
+	if( music1 == NULL )
+    {
+        printf( "Failed to load first music! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
+}
+
 void destroy()
 {
+	// Free the audio
+	Mix_FreeMusic(music1);
+	Mix_FreeChunk(coinCollect);
+	Mix_FreeChunk(treasureCollect);
+	Mix_FreeChunk(yuluChange);
+	Mix_FreeChunk(thanks);
+	music1 = NULL;
+	coinCollect = NULL;
+	treasureCollect = NULL;
+	yuluChange = NULL;
+	thanks = NULL;
+
 	//Destroy window	
 	SDL_DestroyRenderer( renderer );
 	SDL_DestroyWindow( window );
@@ -90,6 +144,7 @@ void destroy()
 	renderer = NULL;
 
 	//Quit SDL subsystems
+	Mix_Quit();
 	IMG_Quit();
 	TTF_Quit();
 	SDL_Quit();
@@ -275,6 +330,7 @@ vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> 
 			{
 				coinsCollided ++;
 				coinIndex.push_back(i);
+				Mix_PlayChannel( -1, coinCollect, 0 );
 			}
 		}
 	}
@@ -288,6 +344,7 @@ vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> 
 			{
 				boxesCollided++;
 				boxIndex.push_back(i);
+				Mix_PlayChannel( -1, treasureCollect, 0 );
 			}
 		}
 	}
@@ -464,6 +521,7 @@ class Player
 					case SDLK_0:
 						if(building_collision(player_pos,buildings).x != -1)
 						{
+							Mix_PlayChannel(-1,thanks,0);
 							vector<int> result;
 							result.push_back(0);
 							coins -= 10;
@@ -473,6 +531,10 @@ class Player
 
 						else if(yulu_collision(player_pos,yuluStand).x != -1)
 						{
+							if(!onYulu)
+							{
+								Mix_PlayChannel(-1,yuluChange,0);
+							}
 							onYulu = true;
 						}
 						break;
@@ -481,7 +543,11 @@ class Player
 						result.push_back(1);
 						if(yulu_collision(player_pos,yuluStand).x != -1)
 						{
-							onYulu = false;
+							if(onYulu)
+							{
+								Mix_PlayChannel(-1,yuluChange,0);
+							}
+							onYulu = false;	
 						}
 						return result;
 						break;
@@ -649,6 +715,44 @@ void setTreasure(vector<Coordinates> boxes, Textures box)
 	}
 }
 
+void musicPlayer(SDL_Event event)
+{
+	if(event.type == SDL_KEYDOWN)
+	{
+		switch( event.key.keysym.sym )
+		{
+			case SDLK_m:
+				//If there is no music playing
+				if( Mix_PlayingMusic() == 0 )
+				{
+					//Play the music
+					Mix_PlayMusic( music1, -1 );
+				}
+				//If music is being played
+				else
+				{
+					//If the music is paused
+					if( Mix_PausedMusic() == 1 )
+					{
+						//Resume the music
+						Mix_ResumeMusic();
+					}
+					//If the music is playing
+					else
+					{
+						//Pause the music
+						Mix_PauseMusic();
+					}
+				}
+				break;
+				
+				case SDLK_s:
+				//Stop the music
+				Mix_HaltMusic();
+				break;
+		}
+	}
+}
 
 
 // Now what is left is buildings, their collisions, professor and collision, ATM and collision

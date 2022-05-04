@@ -17,10 +17,11 @@ int main(int argc, char* argv[])
     }
     else
     {
+        loadAudio();
         bool quit = false;
         SDL_Event event;
         Textures background;
-        Player light("Photos/light-demo.png", "Photos/yulu-light-demo.png");
+        Player light("Graphics_nobg/p1.png", "Graphics_nobg/p1c.png");
         background.loadTexture("Photos/background-demo.png");
         SDL_Rect start = {200,200,200,200};
         SDL_Rect meterDisplay = {0,0,1000,25};
@@ -28,12 +29,12 @@ int main(int argc, char* argv[])
         vector<Coordinates> boxes = randomTreasure();
         Textures coin;
         Textures box;
-        coin.loadTexture("Photos/coin-demo.png");
-        box.loadTexture("Photos/treasure-demo.png");
+        coin.loadTexture("Graphics_nobg/coin.png");
+        box.loadTexture("Graphics_nobg/treasure.png");
         Textures building;
 
         // We are gonna test the building rendering and its collision write now(to be changed later)
-        building.loadTexture("Photos/building-demo.png");
+        building.loadTexture("Graphics_nobg/building.png");
         SDL_Rect building_destination = {300,300,BUILDING_WIDTH,BUILDING_HEIGHT}; 
         Coordinates building_coordinate;
         building_coordinate.x = 300;
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
         vector<Coordinates> buildings;
         buildings.push_back(building_coordinate);
         Textures display_text;
-        display_text.loadTexture("Photos/text-hostel.png");
+        display_text.loadTexture("Graphics_nobg/Aravali.png");
         Textures textTexture;
         vector<int> showText;
         SDL_Rect text = {0,SCREEN_HEIGHT - 300,SCREEN_WIDTH,300};
@@ -54,7 +55,10 @@ int main(int argc, char* argv[])
         Textures yulu;
         vector<Coordinates> stand;
         stand.push_back(yuluStand);
-        yulu.loadTexture("Photos/yulu-stand-demo.png");
+        yulu.loadTexture("Graphics_nobg/yulustand.png");
+
+        // Start the music
+        Mix_PlayMusic( music1, -1);
         while(!quit)
         {
             while(SDL_PollEvent(&event) != 0)
@@ -63,6 +67,7 @@ int main(int argc, char* argv[])
                 {
                     quit = true;
                 }
+                musicPlayer(event);
                 showText = light.handleEvent(event,buildings,stand);
                 if(showText.size() > 0 && showText[0] == 0)
                 {
