@@ -22,6 +22,8 @@ const int PLAYER_WIDTH = 40;
 const int PLAYER_HEIGHT = 80;
 const int BUILDING_WIDTH = 200;
 const int BUILDING_HEIGHT = 200;
+const int YULUSTAND_WIDTH = 200;
+const int YULUSTAND_HEIGHT = 200;
 
 // This function will start and open our game window
 bool initialize()
@@ -316,6 +318,21 @@ Coordinates building_collision(SDL_Rect player_pos, vector<Coordinates> building
 	return result;
 }
 
+Coordinates yulu_collision(SDL_Rect player_pos, vector<Coordinates> yuluStand)
+{
+	for(int i =0; i < yuluStand.size(); i++)
+	{
+		SDL_Rect yulu = {yuluStand[i].x,yuluStand[i].y,YULUSTAND_WIDTH,YULUSTAND_HEIGHT};
+		if(checkCollision(player_pos,yulu))
+		{
+			return yuluStand[i];
+		}
+	}
+	Coordinates result;
+	result.x = -1;
+	result.y = -1;
+	return result;	
+}
 // This function will update the coins collided value to true
 vector<Coordinates> updateCoins(vector<Coordinates> coinsList,vector<int> coinIndex)
 {
@@ -349,13 +366,17 @@ class Player
 		// this will determine the angle of rotation of player
 		double angle = 0.0;
 		Textures player_image;
+		Textures playerYulu_image;
+		bool onYulu = false;
+		int rateYulu = 0;
 	public:
 
 		// This will make the player as L or Light (Game characters) and assign it random position
-		Player(string path)
+		Player(string path, string yuluPath)
 		{
 			srand(time(0));
 			player_image.loadTexture(path);
+			playerYulu_image.loadTexture(yuluPath);
 			motivation = 50;
 			health = 50;
 			stamina = 50;
@@ -368,6 +389,7 @@ class Player
 		void free()
 		{
 			player_image.free();
+			playerYulu_image.free();
 		}
 
 		// This function will give the texture of player meter to be displayed
@@ -413,12 +435,21 @@ class Player
 		// This function will display the player
 		void render()
 		{
-			SDL_Rect destination = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
-			SDL_RenderCopyEx(renderer,player_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+			if(!onYulu)
+			{
+				SDL_Rect destination = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
+				SDL_RenderCopyEx(renderer,player_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+			}
+			else
+			{
+				SDL_Rect destination = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
+				SDL_RenderCopyEx(renderer,playerYulu_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+			}
+			
 		}
 
 		// Handling the movement of player by changing its velocity 
-		vector<int> handleEvent(SDL_Event event, vector<Coordinates> buildings)
+		vector<int> handleEvent(SDL_Event event, vector<Coordinates> buildings,vector<Coordinates> yuluStand)
 		{
 			SDL_Rect player_pos = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
 			// If a key is pressed and no collision with building 
@@ -435,14 +466,26 @@ class Player
 						{
 							vector<int> result;
 							result.push_back(0);
+							coins -= 10;
+							health  += 50;
 							return result;
+						}
+
+						else if(yulu_collision(player_pos,yuluStand).x != -1)
+						{
+							onYulu = true;
 						}
 						break;
 					case SDLK_1:
 						vector<int> result;
 						result.push_back(1);
+						if(yulu_collision(player_pos,yuluStand).x != -1)
+						{
+							onYulu = false;
+						}
 						return result;
 						break;
+
 				}
 			}
 
@@ -465,24 +508,50 @@ class Player
 		// This will move the player whenever this is called
 		vector<vector<int>> move(vector<Coordinates> coinList,vector<Coordinates> boxes)
 		{
+			if(onYulu)
+			{
+				rateYulu += 1;
+				rateYulu %= 300;
+				coins -= rateYulu / 299;
+			}
 			//Move the player left or right
     		x += velX;
+			if(onYulu)
+			{
+				x += velX;
+			}
 
     		//If the player went too far to the left or right
-    		if( ( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH ))
+    		if( (( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH )) && (!onYulu))
     		{
         		//Move back
         		x -=  velX;
     		}
 
+			if((( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH )) && (onYulu))
+			{
+				x -= 2 * velX;
+			}
+
+
     		//Move the player up or down
     		y += velY;
 
+			if(onYulu)
+			{
+				y += velY;
+			}
+
     		//If the player went too far up or down
-    		if( ( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT ))
+    		if( (( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )) && (!onYulu))
 			{
 				//Move back
 				y -= velY;
+			}
+
+			if( (( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )) && (onYulu))
+			{
+				y -= 2 * velY;
 			}
 
 			SDL_Rect player_rect = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
