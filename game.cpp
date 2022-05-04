@@ -1,5 +1,14 @@
 #include "game.h"
 
+void print(vector<int> vec)
+{
+    for(int i =0; i < vec.size();i++)
+    {
+        cout << vec[i] << " ";
+    }
+    cout << endl;
+}
+
 int main(int argc, char* argv[])
 {
     if(!initialize())
@@ -21,6 +30,21 @@ int main(int argc, char* argv[])
         Textures box;
         coin.loadTexture("Photos/coin-demo.png");
         box.loadTexture("Photos/treasure-demo.png");
+        Textures building;
+
+        // We are gonna test the building rendering and its collision write now(to be changed later)
+        building.loadTexture("Photos/building-demo.png");
+        SDL_Rect building_destination = {300,300,BUILDING_WIDTH,BUILDING_HEIGHT}; 
+        Coordinates building_coordinate;
+        building_coordinate.x = 300;
+        building_coordinate.y = 300;
+        vector<Coordinates> buildings;
+        buildings.push_back(building_coordinate);
+        Textures display_text;
+        display_text.loadTexture("Photos/text-hostel.png");
+        Textures textTexture;
+        vector<int> showText;
+        SDL_Rect text = {0,SCREEN_HEIGHT - 300,SCREEN_WIDTH,300};
         while(!quit)
         {
             while(SDL_PollEvent(&event) != 0)
@@ -29,7 +53,15 @@ int main(int argc, char* argv[])
                 {
                     quit = true;
                 }
-                light.handleEvent(event);
+                showText = light.handleEvent(event,buildings);
+                if(showText.size() > 0 && showText[0] == 0)
+                {
+                    textTexture.setTexture(display_text.getTexture());
+                }
+                if(showText.size() > 0 && showText[0] == 1)
+                {
+                    textTexture.setTexture(NULL);
+                }
             }
             vector<vector<int>> coinsAndBox;
             coinsAndBox = light.move(coinList,boxes);
@@ -41,10 +73,15 @@ int main(int argc, char* argv[])
             light.render();
             setCoins(coinList,coin);
             setTreasure(boxes,box);
+            building.render(NULL,&building_destination,true);
             meter.render(NULL,&meterDisplay,true);
+            textTexture.render(NULL,&text,true);
             SDL_RenderPresent(renderer);
             meter.free();
         }
+        textTexture.free();
+        display_text.free();
+        building.free();
         background.free();
         light.free();
         coin.free();
