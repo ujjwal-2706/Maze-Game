@@ -1,14 +1,5 @@
 #include "game.h"
 
-void print(vector<int> vec)
-{
-    for(int i =0; i < vec.size();i++)
-    {
-        cout << vec[i] << " ";
-    }
-    cout << endl;
-}
-
 int main(int argc, char* argv[])
 {
     if(!initialize())
@@ -17,12 +8,19 @@ int main(int argc, char* argv[])
     }
     else
     {
+        // load the audio of game
         loadAudio();
+
+        // game event handling and quit variables
         bool quit = false;
         SDL_Event event;
-        Textures background;
+
+        // background loading
+        BackGround background;
+        Coordinates map;
+
+        // Player loading, coin loading, box loading and meter rectangle
         Player light("Graphics_nobg/p1.png", "Graphics_nobg/p1c.png");
-        background.loadTexture("Photos/background-demo.png");
         SDL_Rect start = {200,200,200,200};
         SDL_Rect meterDisplay = {0,0,1000,25};
         vector<Coordinates> coinList = randomCoins();
@@ -31,6 +29,8 @@ int main(int argc, char* argv[])
         Textures box;
         coin.loadTexture("Graphics_nobg/coin.png");
         box.loadTexture("Graphics_nobg/treasure.png");
+
+
         Textures building;
 
         // We are gonna test the building rendering and its collision write now(to be changed later)
@@ -83,8 +83,10 @@ int main(int argc, char* argv[])
             coinList  = updateCoins(coinList,coinsAndBox[1]);
             boxes = updateBoxes(boxes,coinsAndBox[2]);
             Textures meter = light.displayMeter();
+
+            background.changeMap(light.getMap().x, light.getMap().y);
             SDL_RenderClear(renderer);
-            background.render(NULL,NULL,true);
+            background.render();
             light.render();
             setCoins(coinList,coin);
             setTreasure(boxes,box);
@@ -98,7 +100,7 @@ int main(int argc, char* argv[])
         textTexture.free();
         display_text.free();
         building.free();
-        background.free();
+        background.clear();
         light.free();
         coin.free();
         destroy();

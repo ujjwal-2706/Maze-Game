@@ -418,6 +418,7 @@ class Player
 	private:
 		int motivation,stamina,health,coins;
 		int x,y;
+		Coordinates map;
 		int velX = 0;
 		int velY = 0;
 		// this will determine the angle of rotation of player
@@ -431,6 +432,8 @@ class Player
 		// This will make the player as L or Light (Game characters) and assign it random position
 		Player(string path, string yuluPath)
 		{
+			map.x = 5;
+			map.y = 5;
 			srand(time(0));
 			player_image.loadTexture(path);
 			playerYulu_image.loadTexture(yuluPath);
@@ -514,8 +517,8 @@ class Player
 			{
 				switch( event.key.keysym.sym)
 				{
-					case SDLK_UP: velY -= 10; angle += 60; break;
-					case SDLK_DOWN: velY += 10; angle -= 60;  break;
+					case SDLK_UP: velY -= 10; angle -= 90; break;
+					case SDLK_DOWN: velY += 10; angle += 90;  break;
 					case SDLK_LEFT: velX -= 10; break;
 					case SDLK_RIGHT: velX += 10; break;
 					case SDLK_0:
@@ -561,8 +564,8 @@ class Player
 				//Adjust the velocity
 				switch( event.key.keysym.sym )
 				{
-					case SDLK_UP: velY += 10; angle -= 60; break;
-					case SDLK_DOWN: velY -= 10; angle += 60; break;
+					case SDLK_UP: velY += 10; angle += 90; break;
+					case SDLK_DOWN: velY -= 10; angle -= 90; break;
 					case SDLK_LEFT: velX += 10; break;
 					case SDLK_RIGHT: velX -= 10; break;
 				}
@@ -571,6 +574,10 @@ class Player
 			return temp;
 		}
 
+		Coordinates getMap()
+		{
+			return map;
+		}
 		// This will move the player whenever this is called
 		vector<vector<int>> move(vector<Coordinates> coinList,vector<Coordinates> boxes)
 		{
@@ -587,14 +594,24 @@ class Player
 				x += velX;
 			}
 
-    		//If the player went too far to the left or right
-    		if( (( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH )) && (!onYulu))
-    		{
-        		//Move back
-        		x -=  velX;
-    		}
+			if( ( x < 0 ) && map.y > 0)
+			{
+				x = SCREEN_WIDTH - PLAYER_WIDTH - 5;
+				map.y -= 1;
+			}
 
-			if((( x < 0 ) || ( x + PLAYER_WIDTH > SCREEN_WIDTH )) && (onYulu))
+			if( x < 0 && map.y == 0)
+			{
+				x -= 2 * velX;
+			}
+
+			if( ( x + PLAYER_WIDTH > SCREEN_WIDTH ) && map.y < 10 )
+			{
+				x = 0;
+				map.y +=1;
+			}
+
+			if( ( x + PLAYER_WIDTH > SCREEN_WIDTH ) && map.y == 10)
 			{
 				x -= 2 * velX;
 			}
@@ -608,17 +625,28 @@ class Player
 				y += velY;
 			}
 
-    		//If the player went too far up or down
-    		if( (( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )) && (!onYulu))
+			if( ( y < 0 ) && map.x > 0)
 			{
-				//Move back
-				y -= velY;
+				y = SCREEN_HEIGHT - PLAYER_HEIGHT - 5;
+				map.x -= 1;
 			}
 
-			if( (( y < 0 ) || ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )) && (onYulu))
+			if( y< 0 && map.x == 0)
 			{
 				y -= 2 * velY;
 			}
+
+			if( ( y + PLAYER_HEIGHT > SCREEN_HEIGHT ) && map.y < 7 )
+			{
+				y = 0;
+				map.x +=1;
+			}
+
+			if( ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )  && map.y == 7)
+			{
+				y -= 2 * velY;
+			}
+
 
 			SDL_Rect player_rect = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
 			vector<vector<int>> meterIncrease;
@@ -755,6 +783,64 @@ void musicPlayer(SDL_Event event)
 }
 
 
+class BackGround
+{
+	private:
+		vector<vector<Textures>> background_images;
+		Coordinates map;
+	public:
+		BackGround()
+		{
+			map.x = 5;
+			map.y = 5;
+			for(int i =0 ; i < 8;i++)
+			{
+				vector<Textures> temp;
+				for(int j = 0; j < 11;j++)
+				{
+					string fileName = "Grid/row-" + to_string(i+1) + "-column-" + to_string(j+1) + ".png";
+					Textures back;
+					back.loadTexture(fileName);
+					temp.push_back(back);
+				}
+				background_images.push_back(temp);
+			}
+		}
+
+		Textures getBackGround(int i, int j)
+		{
+			return background_images[i][j];
+		}
+
+		void changeMap(int x,int y)
+		{
+			map.x = x;
+			map.y = y;
+		}
+
+		Coordinates currentMap()
+		{
+			return map;
+		}
+
+		void render()
+		{
+			background_images[map.x][map.y].render(NULL,NULL,true);
+		}
+
+		void clear()
+		{
+			for(int i = 0; i < 8; i++)
+			{
+				for(int j = 0; j < 11; j++)
+				{
+					background_images[i][j].free();
+				}
+			}
+		}
+};
+
+
 // Now what is left is buildings, their collisions, professor and collision, ATM and collision
 // Batchmates and collision
 // Messages to be popped up with meeting people and the start instruciton and music 
@@ -766,3 +852,14 @@ void musicPlayer(SDL_Event event)
 // after some button or mouse press, do this for 1 building then the similar logic can
 // be implemented for yulu stand, and football ground. then finally music will be left
 // for the background tiles, create another matrix coordinate
+
+
+/* Final things left to be done 
+1. Implement the background class and create a separate load media function to load all the textures
+2. Position all the texture and buildings
+3. Correct the player's movement 
+4. Implement the timer meter
+5. Implement the server and the client function
+6. Inside the main while loop create different while loop dependig on server or client
+7. send coordinates of player in each frame and render accordingly
+8. Initialize page of the game*/

@@ -14,8 +14,14 @@ class Coord
 		int x,y;
 };
 
+void func(Coord val)
+{
+	val.x = 10;
+};
+Coord val;
 int main()
 {
-	Coord val;
+	
+	
 	return 0;
 }
