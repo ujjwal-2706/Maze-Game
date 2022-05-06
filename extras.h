@@ -30,6 +30,8 @@ const int BUILDING_WIDTH = 200;
 const int BUILDING_HEIGHT = 200;
 const int YULUSTAND_WIDTH = 200;
 const int YULUSTAND_HEIGHT = 200;
+const int GROUND_WIDTH = 700;
+const int GROUND_HEIGHT = 400;
 // Now we will implement a function to produce random gift from the treasure box
 vector<int> gift()
 {
@@ -122,6 +124,8 @@ class Coordinates
 	public:
 		int x,y;
 		bool collided = false;
+		int mapX;
+		int mapY;
 };
 
 
@@ -262,7 +266,7 @@ bool checkCollision( SDL_Rect a, SDL_Rect b )
 // The index 0 if the vector which contains 2 elements - coinsCollided and boxesCollided
 // The index 1 will give the index vector of coinsCollided
 // The index 2 will give the index vector of boxesCollided
-vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> coinsList,vector<Coordinates> boxes)
+vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> coinsList,vector<Coordinates> boxes,int mapX,int mapY)
 {
 	vector<vector<int>> result;
 	int coinsCollided = 0;
@@ -273,7 +277,7 @@ vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> 
 	for(int i =0;i < coinsList.size();i++)
 	{
 		SDL_Rect coin_rect = {coinsList[i].x,coinsList[i].y,COIN_WIDTH,COIN_HEIGHT};
-		if(!(coinsList[i].collided))
+		if(!(coinsList[i].collided) && (coinsList[i].mapX == mapX) && (coinsList[i].mapY == mapY))
 		{
 			if(checkCollision(player_rect,coin_rect))
 			{
@@ -287,7 +291,7 @@ vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> 
 	for(int i =0;i < boxes.size();i++)
 	{
 		SDL_Rect box_rect = {boxes[i].x,boxes[i].y,TREASURE_WIDTH,TREASURE_HEIGHT};
-		if(!(boxes[i].collided))
+		if(!(boxes[i].collided) && (boxes[i].mapX == mapX) && (boxes[i].mapY == mapY))
 		{
 			if(checkCollision(player_rect,box_rect))
 			{
@@ -307,12 +311,12 @@ vector<vector<int>> checkAllCollisions(SDL_Rect player_rect,vector<Coordinates> 
 }
 
 // This function will give the building with which player is colliding
-Coordinates building_collision(SDL_Rect player_pos, vector<Coordinates> buildings)
+Coordinates building_collision(SDL_Rect player_pos, vector<Coordinates> buildings,int mapX,int mapY)
 {
 	for(int i =0; i < buildings.size(); i++)
 	{
 		SDL_Rect building = {buildings[i].x,buildings[i].y,BUILDING_WIDTH,BUILDING_HEIGHT};
-		if(checkCollision(player_pos,building))
+		if(checkCollision(player_pos,building) && buildings[i].mapX == mapX && buildings[i].mapY == mapY)
 		{
 			return buildings[i];
 		}
@@ -323,12 +327,12 @@ Coordinates building_collision(SDL_Rect player_pos, vector<Coordinates> building
 	return result;
 }
 
-Coordinates yulu_collision(SDL_Rect player_pos, vector<Coordinates> yuluStand)
+Coordinates yulu_collision(SDL_Rect player_pos, vector<Coordinates> yuluStand,int mapX,int mapY)
 {
 	for(int i =0; i < yuluStand.size(); i++)
 	{
 		SDL_Rect yulu = {yuluStand[i].x,yuluStand[i].y,YULUSTAND_WIDTH,YULUSTAND_HEIGHT};
-		if(checkCollision(player_pos,yulu))
+		if(checkCollision(player_pos,yulu) && yuluStand[i].mapX == mapX && yuluStand[i].mapY == mapY)
 		{
 			return yuluStand[i];
 		}
@@ -362,16 +366,20 @@ vector<Coordinates> randomTreasure()
 {
 	srand(time(0));
 	int boxes = 0;
-	int totalBoxes = rand() % 10;
+	int totalBoxes = 50;
 	vector<Coordinates> result;
 	srand(time(0));
 	while (boxes < totalBoxes)
 	{
 		int x = rand() % (SCREEN_WIDTH - TREASURE_WIDTH);
 		int y = rand() % (SCREEN_HEIGHT - TREASURE_HEIGHT);
+		int mapX = rand() % 8;
+		int mapY = rand() % 11;
 		Coordinates coordinate;
 		coordinate.x = x;
 		coordinate.y = y;
+		coordinate.mapX = mapX;
+		coordinate.mapY = mapY;
 		result.push_back(coordinate);
 		boxes++;
 	}
@@ -379,11 +387,11 @@ vector<Coordinates> randomTreasure()
 }
 
 // This function will render the boxes
-void setTreasure(vector<Coordinates> boxes, Textures box)
+void setTreasure(vector<Coordinates> boxes, Textures box,int mapX,int mapY)
 {
 	for(int i =0; i < boxes.size();i++)
 	{
-		if(!(boxes[i].collided))
+		if(!(boxes[i].collided) && (boxes[i].mapX == mapX) && (boxes[i].mapY == mapY))
 		{
 			SDL_Rect destination;
 			destination.x = boxes[i].x;
@@ -399,16 +407,20 @@ void setTreasure(vector<Coordinates> boxes, Textures box)
 vector<Coordinates> randomCoins()
 {
 	int numCoins = 0;
-	int totalCoins = 50;
+	int totalCoins = 1000;
 	vector<Coordinates> result;
 	srand(time(0));
 	while (numCoins < totalCoins)
 	{
 		int x = rand() % (SCREEN_WIDTH - COIN_WIDTH);
 		int y = rand() % (SCREEN_HEIGHT - COIN_HEIGHT);
+		int mapX = rand() % 8;
+		int mapY = rand() % 11;
 		Coordinates coordinate;
 		coordinate.x = x;
 		coordinate.y = y;
+		coordinate.mapX = mapX;
+		coordinate.mapY = mapY;
 		result.push_back(coordinate);
 		numCoins++;
 	}
@@ -416,11 +428,11 @@ vector<Coordinates> randomCoins()
 }
 
 // height and width of coins are 20 pixel each also we will use the same function to set treasure
-void setCoins(vector<Coordinates> coinsList, Textures coin)
+void setCoins(vector<Coordinates> coinsList, Textures coin,int mapX,int mapY)
 {
 	for(int i =0; i < coinsList.size();i++)
 	{
-		if(!(coinsList[i].collided))
+		if(!(coinsList[i].collided) && (coinsList[i].mapX == mapX) && (coinsList[i].mapY == mapY))
 		{
 			SDL_Rect destination;
 			destination.x = coinsList[i].x;
@@ -430,4 +442,330 @@ void setCoins(vector<Coordinates> coinsList, Textures coin)
 			coin.render(NULL,&destination,true);
 		}
 	}
+}
+// This function will give the texture of player meter to be displayed
+Textures displayTime(int currentTime)
+{
+	Textures meter;
+	int seconds = currentTime / 1000;
+	int minutes = seconds / 60;
+	seconds = seconds % 60;
+	string meterText = "Time : " + to_string(minutes) + " min " + to_string(seconds) + "seconds";
+	//Open the font
+	meterFont = TTF_OpenFont( "Fonts/ABeeZee-Regular.ttf", 28 );
+	SDL_Color textColor = {0,0,0};
+	if( meterFont == NULL )
+	{
+		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+		return meter;
+	}
+	else
+	{
+		//Render text surface
+		SDL_Surface* textSurface = TTF_RenderText_Solid( meterFont, meterText.c_str(), textColor );
+		if( textSurface == NULL )
+		{
+			printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+			return meter;
+		}
+		else
+		{
+			SDL_Texture* display = SDL_CreateTextureFromSurface(renderer,textSurface);
+			meter.setTexture(display);
+			meter.setDimension(textSurface->w,textSurface->h);
+			SDL_FreeSurface(textSurface);
+			//global font
+			TTF_CloseFont( meterFont );
+			meterFont = NULL;
+			return meter;
+		}
+	}
+}
+
+// HostelTextures made global
+vector<Textures> HostelTextures;
+void createHostels()
+{
+
+	// Textures loaded
+	Textures aravali;
+	Textures karakoram;
+	Textures jwala;
+	Textures himadri;
+	Textures kailash;
+	Textures kumaon;
+	Textures nilgiri;
+	Textures satpura;
+	Textures girnar;
+	Textures vidhya;
+	aravali.loadTexture("Graphics_nobg/Aravali.png");
+	karakoram.loadTexture("Graphics_nobg/Karakoram.png");
+	jwala.loadTexture("Graphics_nobg/Jwala.png");
+	himadri.loadTexture("Graphics_nobg/Himadri.png");
+	kailash.loadTexture("Graphics_nobg/Kailash.png");
+	kumaon.loadTexture("Graphics_nobg/Kumaon.png");
+	nilgiri.loadTexture("Graphics_nobg/Nilgiri.png");
+	satpura.loadTexture("Graphics_nobg/Satpura.png");
+	girnar.loadTexture("Graphics_nobg/girnar.png");
+	vidhya.loadTexture("Graphics_nobg/Vindhyanchal.png");
+
+	// Textures appended
+	HostelTextures.push_back(aravali);
+	HostelTextures.push_back(karakoram);
+	HostelTextures.push_back(jwala);
+	HostelTextures.push_back(himadri);
+	HostelTextures.push_back(kailash);
+	HostelTextures.push_back(kumaon);
+	HostelTextures.push_back(nilgiri);
+	HostelTextures.push_back(satpura);
+	HostelTextures.push_back(girnar);
+	HostelTextures.push_back(vidhya);
+}
+
+// destroy the hostel textures
+void clearHostels()
+{
+	for (int i = 0; i < HostelTextures.size(); i++)
+	{
+		HostelTextures[i].free();
+	}
+}
+
+// This function will give the coordinates of hostel in the map
+vector<Coordinates> hostelCoordinates()
+{
+	// The coordinates of hostels in the map
+	Coordinates aravali;
+	Coordinates karakoram;
+	Coordinates jwala;
+	Coordinates himadri;
+	Coordinates kailash;
+	Coordinates kumaon;
+	Coordinates nilgiri;
+	Coordinates satpura;
+	Coordinates girnar;
+	Coordinates vidhya;
+
+	aravali.x = 900;
+	aravali.y = 800;
+	aravali.mapX = 3;
+	aravali.mapY = 0;
+
+	karakoram.x = 900;
+	karakoram.y = 100;
+	karakoram.mapX = 3;
+	karakoram.mapY = 0;
+
+	jwala.x = 900;
+	jwala.y = 500;
+	jwala.mapX = 2;
+	jwala.mapY = 0;
+
+	himadri.x = 900;
+	himadri.y = 50;
+	himadri.mapX = 2;
+	himadri.mapY = 9;
+
+	kailash.x = 50;
+	kailash.y = 400;
+	kailash.mapX = 2;
+	kailash.mapY = 9;
+
+	kumaon.x = 50;
+	kumaon.y =  800;
+	kumaon.mapX = 2;
+	kumaon.mapY = 1;
+
+	nilgiri.x = 900;
+	nilgiri.y = 700;
+	nilgiri.mapX = 4;
+	nilgiri.mapY = 0;
+
+	satpura.x = 800;
+	satpura.y = 500;
+	satpura.mapX = 2;
+	satpura.mapY = 4;
+
+	girnar.x = 50;
+	girnar.y = 50;
+	girnar.mapX = 3;
+	girnar.mapY = 5;
+
+	vidhya.x = 860;
+	vidhya.y = 900;
+	vidhya.mapX = 2;
+	vidhya.mapY = 2;
+
+	vector<Coordinates> hostelPos;
+	hostelPos.push_back(aravali);
+	hostelPos.push_back(karakoram);
+	hostelPos.push_back(jwala);
+	hostelPos.push_back(himadri);
+	hostelPos.push_back(kailash);
+	hostelPos.push_back(kumaon);
+	hostelPos.push_back(nilgiri);
+	hostelPos.push_back(satpura);
+	hostelPos.push_back(girnar);
+	hostelPos.push_back(vidhya);
+	
+	return hostelPos;
+}
+
+// This will render the hostel on map
+void renderHostel(int mapX,int mapY,vector<Coordinates> hostelPos)
+{
+	for(int i =0; i < hostelPos.size(); i++)
+	{
+		if(hostelPos[i].mapX == mapX && hostelPos[i].mapY == mapY)
+		{
+			SDL_Rect destination = {hostelPos[i].x,hostelPos[i].y,BUILDING_WIDTH,BUILDING_HEIGHT};
+			SDL_RenderCopy(renderer,HostelTextures[i].getTexture(),NULL,&destination);
+		}
+	}
+}
+
+vector<Coordinates> yuluCoordinates()
+{
+	Coordinates yulu1;
+	Coordinates yulu2;
+	Coordinates yulu3;
+	Coordinates yulu4;
+	Coordinates yulu5;
+	Coordinates yulu6;
+	Coordinates yulu7;
+	
+	yulu1.x = 20;
+	yulu1.y = 500;
+	yulu1.mapX = 2;
+	yulu1.mapY = 8;
+
+	yulu2.x = 1300;
+	yulu2.y = 250;
+	yulu2.mapX = 4;
+	yulu2.mapY = 7;
+
+	yulu3.x = 350;
+	yulu3.y = 600;
+	yulu3.mapX = 7;
+	yulu3.mapY = 4;
+
+	yulu4.x = 950;
+	yulu4.y = 750;
+	yulu4.mapX = 6;
+	yulu4.mapY = 2;
+
+	yulu5.x = 900;
+	yulu5.y = 400;
+	yulu5.mapX = 3;
+	yulu5.mapY = 4;
+
+	yulu6.x = 700;
+	yulu6.y = 50;
+	yulu6.mapX = 3;
+	yulu6.mapY = 9;
+
+	yulu7.x = 1000;
+	yulu7.y = 450;
+	yulu7.mapX = 5;
+	yulu7.mapY = 0;
+
+	vector<Coordinates> yuluStand;
+	yuluStand.push_back(yulu1);
+	yuluStand.push_back(yulu2);
+	yuluStand.push_back(yulu3);
+	yuluStand.push_back(yulu4);
+	yuluStand.push_back(yulu5);
+	yuluStand.push_back(yulu6);
+	yuluStand.push_back(yulu7);
+
+	return yuluStand;
+}
+
+// This will render yulu on the map
+void renderYulu(int mapX,int mapY, Textures yulu, vector<Coordinates> yuluStand)
+{
+	for(int i =0; i < yuluStand.size(); i++)
+	{
+		if(yuluStand[i].mapX == mapX && yuluStand[i].mapY == mapY)
+		{
+			SDL_Rect destination = {yuluStand[i].x,yuluStand[i].y,YULUSTAND_WIDTH,YULUSTAND_HEIGHT};
+			SDL_RenderCopy(renderer,yulu.getTexture(),NULL,&destination);
+		}
+	}	
+}
+
+
+vector<Coordinates> footballCoordinates()
+{
+	Coordinates ground;
+	ground.x = 860;
+	ground.y = 650;
+	ground.mapX = 5;
+	ground.mapY = 4;
+	vector<Coordinates> result;
+	result.push_back(ground);
+	return result;
+}
+
+// This will render the football ground on the map
+void renderGround(int mapX,int mapY,Textures ground, vector<Coordinates> groundCoordinates)
+{
+	for(int i =0; i < groundCoordinates.size(); i++)
+	{
+		if(groundCoordinates[i].mapX == mapX && groundCoordinates[i].mapY == mapY)
+		{
+			SDL_Rect destination = {groundCoordinates[i].x,groundCoordinates[i].y,GROUND_WIDTH,GROUND_HEIGHT};
+			SDL_RenderCopy(renderer,ground.getTexture(),NULL,&destination);
+		}
+	}	
+}
+
+vector<Coordinates> masalaMixCoordinates()
+{
+	Coordinates masala;
+	masala.x = 1290;
+	masala.y = 700;
+	masala.mapX = 4;
+	masala.mapY = 3;
+	vector<Coordinates> result;
+	result.push_back(masala);
+	return result;
+}
+
+// This will render the masala mix ground on the map
+void renderMasala(int mapX,int mapY,Textures ground, vector<Coordinates> groundCoordinates)
+{
+	for(int i =0; i < groundCoordinates.size(); i++)
+	{
+		if(groundCoordinates[i].mapX == mapX && groundCoordinates[i].mapY == mapY)
+		{
+			SDL_Rect destination = {groundCoordinates[i].x,groundCoordinates[i].y,BUILDING_WIDTH,BUILDING_HEIGHT};
+			SDL_RenderCopy(renderer,ground.getTexture(),NULL,&destination);
+		}
+	}	
+}
+
+vector<Coordinates> professorCoordinates()
+{
+	Coordinates prof;
+	prof.mapX = 4;
+	prof.mapY = 7;
+	prof.x = 1300;
+	prof.y = 700;
+	vector<Coordinates> result;
+	result.push_back(prof);
+	return result;
+}
+
+// This will render the masala mix ground on the map
+void renderProf(int mapX,int mapY,Textures ground, vector<Coordinates> groundCoordinates)
+{
+	for(int i =0; i < groundCoordinates.size(); i++)
+	{
+		if(groundCoordinates[i].mapX == mapX && groundCoordinates[i].mapY == mapY)
+		{
+			SDL_Rect destination = {groundCoordinates[i].x,groundCoordinates[i].y,BUILDING_WIDTH,BUILDING_HEIGHT};
+			SDL_RenderCopy(renderer,ground.getTexture(),NULL,&destination);
+		}
+	}	
 }

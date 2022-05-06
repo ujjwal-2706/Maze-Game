@@ -191,7 +191,7 @@ class Player
 		}
 
 		// Handling the movement of player by changing its velocity 
-		vector<int> handleEvent(SDL_Event event, vector<Coordinates> buildings,vector<Coordinates> yuluStand)
+		void handleEvent(SDL_Event event, vector<Coordinates> buildings,vector<Coordinates> yuluStand,vector<Coordinates> masalaMix,vector<Coordinates> football,vector<Coordinates> professor)
 		{
 			SDL_Rect player_pos = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
 			// If a key is pressed and no collision with building 
@@ -204,17 +204,14 @@ class Player
 					case SDLK_LEFT: velX -= 10; break;
 					case SDLK_RIGHT: velX += 10; break;
 					case SDLK_0:
-						if(building_collision(player_pos,buildings).x != -1)
+						if(building_collision(player_pos,buildings,map.x,map.y).x != -1)
 						{
 							Mix_PlayChannel(-1,thanks,0);
-							vector<int> result;
-							result.push_back(0);
 							coins -= 10;
 							health  += 50;
-							return result;
 						}
 
-						else if(yulu_collision(player_pos,yuluStand).x != -1)
+						if(yulu_collision(player_pos,yuluStand,map.x,map.y).x != -1)
 						{
 							if(!onYulu)
 							{
@@ -222,11 +219,29 @@ class Player
 							}
 							onYulu = true;
 						}
+
+						if(building_collision(player_pos,masalaMix,map.x,map.y).x != -1)
+						{
+							Mix_PlayChannel(-1,thanks,0);
+							coins -= 20;
+							health += 80;
+							motivation -= 5;
+						}
+						if(building_collision(player_pos,football,map.x,map.y).x != -1)
+						{
+							Mix_PlayChannel(-1,thanks,0);
+							health += 100;
+							motivation += 20;
+							stamina -= 20;
+						}
+						if(building_collision(player_pos,professor,map.x,map.y).x != -1)
+						{
+							Mix_PlayChannel(-1,thanks,0);
+							motivation += 1;
+						}
 						break;
 					case SDLK_1:
-						vector<int> result;
-						result.push_back(1);
-						if(yulu_collision(player_pos,yuluStand).x != -1)
+						if(yulu_collision(player_pos,yuluStand,map.x,map.y).x != -1)
 						{
 							if(onYulu)
 							{
@@ -234,7 +249,6 @@ class Player
 							}
 							onYulu = false;	
 						}
-						return result;
 						break;
 
 				}
@@ -252,8 +266,6 @@ class Player
 					case SDLK_RIGHT: velX -= 10; break;
 				}
 			}
-			vector<int> temp;
-			return temp;
 		}
 
 		Coordinates getMap()
@@ -318,13 +330,13 @@ class Player
 				y -= 2 * velY;
 			}
 
-			if( ( y + PLAYER_HEIGHT > SCREEN_HEIGHT ) && map.y < 7 )
+			if( ( y + PLAYER_HEIGHT > SCREEN_HEIGHT ) && map.x < 7 )
 			{
 				y = 0;
 				map.x +=1;
 			}
 
-			if( ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )  && map.y == 7)
+			if( ( y + PLAYER_HEIGHT > SCREEN_HEIGHT )  && map.x == 7)
 			{
 				y -= 2 * velY;
 			}
@@ -332,7 +344,7 @@ class Player
 
 			SDL_Rect player_rect = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
 			vector<vector<int>> meterIncrease;
-			meterIncrease =  checkAllCollisions(player_rect,coinList,boxes);
+			meterIncrease =  checkAllCollisions(player_rect,coinList,boxes,map.x,map.y);
 			coins += meterIncrease[0][0];
 			int box = meterIncrease[0][1];
 			for(int i =0; i < box; i++)
@@ -407,6 +419,8 @@ class BackGround
 			}
 		}
 };
+
+
 
 
 // Now what is left is buildings, their collisions, professor and collision, ATM and collision
