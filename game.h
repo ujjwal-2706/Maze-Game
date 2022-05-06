@@ -109,13 +109,14 @@ class Player
 		Textures playerYulu_image;
 		bool onYulu = false;
 		int rateYulu = 0;
+		bool onLeft = false;
 	public:
 
 		// This will make the player as L or Light (Game characters) and assign it random position
 		Player(string path, string yuluPath)
 		{
-			map.x = 5;
-			map.y = 5;
+			map.x = 2;
+			map.y = 8;
 			srand(time(0));
 			player_image.loadTexture(path);
 			playerYulu_image.loadTexture(yuluPath);
@@ -125,6 +126,49 @@ class Player
 			coins = 0;
 			x = rand() % (SCREEN_WIDTH - PLAYER_WIDTH);
 			y = rand() % (SCREEN_HEIGHT - PLAYER_HEIGHT);
+		}
+
+		// This function will send the statistics of 1 player to another
+		vector<int> statistics()
+		{
+			vector<int> result;
+			result.push_back(coins);
+			result.push_back(health);
+			result.push_back(stamina);
+			result.push_back(motivation);
+			result.push_back(map.x);
+			result.push_back(map.y);
+			result.push_back(x);
+			result.push_back(y);
+			int yu = 0;
+			if(onYulu)
+			{
+				yu = 1;
+				result.push_back(yu);
+				return result;
+			}
+			else
+			{
+				yu = 0;
+				result.push_back(yu);
+				return result;
+			}
+		}
+
+		void renderOther(int xco,int yco,int mapX,int mapY,int yul)
+		{
+			map.x = mapX;
+			map.y = mapY;
+			x = xco;
+			y = yco;
+			if(yul == 0)
+			{
+				onYulu = false;
+			}
+			else if(yul == 1)
+			{
+				onYulu = true;
+			}
 		}
 
 		// This function will free the texture
@@ -180,12 +224,27 @@ class Player
 			if(!onYulu)
 			{
 				SDL_Rect destination = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
-				SDL_RenderCopyEx(renderer,player_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+				if(!onLeft)
+				{
+					SDL_RenderCopyEx(renderer,player_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+				}
+				else
+				{
+					SDL_RenderCopyEx(renderer,player_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_HORIZONTAL);
+				}
 			}
 			else
 			{
 				SDL_Rect destination = {x,y,PLAYER_WIDTH,PLAYER_HEIGHT};
-				SDL_RenderCopyEx(renderer,playerYulu_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+				if(!onLeft)
+				{
+					SDL_RenderCopyEx(renderer,playerYulu_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_NONE);
+				}
+				else
+				{
+					SDL_RenderCopyEx(renderer,playerYulu_image.getTexture(),NULL,&destination,angle,NULL,SDL_FLIP_HORIZONTAL);
+				}
+				
 			}
 			
 		}
@@ -199,10 +258,10 @@ class Player
 			{
 				switch( event.key.keysym.sym)
 				{
-					case SDLK_UP: velY -= 10; angle -= 90; break;
-					case SDLK_DOWN: velY += 10; angle += 90;  break;
-					case SDLK_LEFT: velX -= 10; break;
-					case SDLK_RIGHT: velX += 10; break;
+					case SDLK_UP: velY -= 7; angle += 90; break;
+					case SDLK_DOWN: velY += 7; angle -= 90; break;
+					case SDLK_LEFT: velX -= 7; onLeft = true; break;
+					case SDLK_RIGHT: velX += 7; onLeft = false; break;
 					case SDLK_0:
 						if(building_collision(player_pos,buildings,map.x,map.y).x != -1)
 						{
@@ -260,10 +319,10 @@ class Player
 				//Adjust the velocity
 				switch( event.key.keysym.sym )
 				{
-					case SDLK_UP: velY += 10; angle += 90; break;
-					case SDLK_DOWN: velY -= 10; angle -= 90; break;
-					case SDLK_LEFT: velX += 10; break;
-					case SDLK_RIGHT: velX -= 10; break;
+					case SDLK_UP: velY += 7; angle -= 90;  break;
+					case SDLK_DOWN: velY -= 7; angle += 90; break;
+					case SDLK_LEFT: velX += 7; break;
+					case SDLK_RIGHT: velX -= 7; break;
 				}
 			}
 		}
@@ -371,8 +430,8 @@ class BackGround
 	public:
 		BackGround()
 		{
-			map.x = 5;
-			map.y = 5;
+			map.x = 2;
+			map.y = 8;
 			for(int i =0 ; i < 8;i++)
 			{
 				vector<Textures> temp;

@@ -20,16 +20,16 @@ Mix_Chunk* thanks = NULL;
 
 const int SCREEN_WIDTH = 1720;
 const int SCREEN_HEIGHT = 1000;
-const int COIN_WIDTH = 30;
-const int COIN_HEIGHT = 30;
-const int TREASURE_WIDTH = 50;
-const int TREASURE_HEIGHT = 50;
-const int PLAYER_WIDTH = 200;
+const int COIN_WIDTH = 60;
+const int COIN_HEIGHT = 60;
+const int TREASURE_WIDTH = 150;
+const int TREASURE_HEIGHT = 150;
+const int PLAYER_WIDTH = 300;
 const int PLAYER_HEIGHT = 150;
-const int BUILDING_WIDTH = 200;
-const int BUILDING_HEIGHT = 200;
-const int YULUSTAND_WIDTH = 200;
-const int YULUSTAND_HEIGHT = 200;
+const int BUILDING_WIDTH = 700;
+const int BUILDING_HEIGHT = 700;
+const int YULUSTAND_WIDTH = 300;
+const int YULUSTAND_HEIGHT = 300;
 const int GROUND_WIDTH = 700;
 const int GROUND_HEIGHT = 400;
 // Now we will implement a function to produce random gift from the treasure box
@@ -723,8 +723,8 @@ void renderGround(int mapX,int mapY,Textures ground, vector<Coordinates> groundC
 vector<Coordinates> masalaMixCoordinates()
 {
 	Coordinates masala;
-	masala.x = 1290;
-	masala.y = 700;
+	masala.x = 900;
+	masala.y = 400;
 	masala.mapX = 4;
 	masala.mapY = 3;
 	vector<Coordinates> result;
@@ -752,6 +752,9 @@ vector<Coordinates> professorCoordinates()
 	prof.mapY = 7;
 	prof.x = 1300;
 	prof.y = 700;
+
+	// Coordinates prof2;
+
 	vector<Coordinates> result;
 	result.push_back(prof);
 	return result;
@@ -769,3 +772,58 @@ void renderProf(int mapX,int mapY,Textures ground, vector<Coordinates> groundCoo
 		}
 	}	
 }
+
+// "10 23 34 45 4 5 200 400 1"
+// We will make some extra functions to send and receive data using sockets
+
+string paramToData(vector<int> playerParam)
+{
+	// 0 -> coins
+	// 1 -> health
+	// 2 -> stamina
+	// 3 -> motivation
+	// 4 -> mapX
+	// 5 -> mapY
+	// 6 -> x
+	// 7 -> y
+	// 8 -> onYulu
+	string value = "" + to_string(playerParam[0]) + " " + to_string(playerParam[1]) + " ";
+	value += to_string(playerParam[2]) + " " + to_string(playerParam[3]) + " " + to_string(playerParam[4]);
+	value += " " + to_string(playerParam[5]) + " " + to_string(playerParam[6]) + " " + to_string(playerParam[7]);
+	value += " " + to_string(playerParam[8]);
+	string result = value.c_str();
+	return result;
+}
+
+vector<int> dataToParam(string value)
+{
+	vector<int> result;
+	if(value.compare("") == 0)
+	{
+		return result;
+	}
+	else
+	{
+		int index = 0;
+		int prev = 0;
+		while(index < value.size())
+		{
+			if((value.substr(index,1)).compare(" ") == 0)
+			{
+				int num = stoi(value.substr(prev,index - prev));
+				result.push_back(num);
+				index ++;
+				prev = index;
+			}
+			else
+			{
+				index ++;
+			}
+
+		}
+        int num = stoi(value.substr(prev,index - prev));
+        result.push_back(num);
+		return result;
+	}
+}
+
