@@ -73,7 +73,9 @@ NOTE:- Me and my partner are both using Ubuntu 20.04 as an Operating system to p
 
 5.  It should be noted that the server should start the game first before the client so that connection can be established
 
-6.  For further instruction  and controls of the game, please refer to the Presentation.
+6. For further instruction  and controls of the game, please refer to the Presentation.
+
+6.  It should be noted that in order to run the game on 2 computer you will have to hardcode the ip address of the server computer into the client.h file of the client inside the makeClientSide() function.
 
 ------
 
