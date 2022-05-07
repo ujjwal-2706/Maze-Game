@@ -142,7 +142,7 @@ int main(int argc, char** argv)
             player2.renderOther(secondPlayer[6],secondPlayer[7],secondPlayer[4],secondPlayer[5],secondPlayer[8]);
             bool renderP2 = false;
             //Timer
-            if((!startScreen) && (!instructionScreen) && (SDL_GetTicks() - timeVal < 20000))
+            if((!startScreen) && (!instructionScreen) && (SDL_GetTicks() - timeVal < 300000))
             {
                 Textures timer = displayTime(SDL_GetTicks() - timeVal);
                 vector<vector<int>> coinsAndBox;
@@ -175,7 +175,7 @@ int main(int argc, char** argv)
                 meter.free();
                 timer.free();
             }
-            else if(SDL_GetTicks() - timeVal >= 20000)
+            else if(SDL_GetTicks() - timeVal >= 300000)
             {
                 Mix_HaltMusic();
                 vector<int> player1Stat = player1.statistics();
