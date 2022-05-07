@@ -291,7 +291,7 @@ class Player
 							Mix_PlayChannel(-1,thanks,0);
 							health += 100;
 							motivation += 20;
-							stamina -= 20;
+							stamina -= 95;
 						}
 						if(building_collision(player_pos,professor,map.x,map.y).x != -1)
 						{
