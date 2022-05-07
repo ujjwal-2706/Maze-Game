@@ -1,0 +1,4 @@
+﻿
+1. The game compiles and runs as we want.
+2. The sockets are working correctly on a LAN.
+3. Input events are all working correctly and fine.
