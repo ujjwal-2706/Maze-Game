@@ -17,6 +17,7 @@ Mix_Chunk* coinCollect = NULL;
 Mix_Chunk* treasureCollect = NULL;
 Mix_Chunk* yuluChange = NULL;
 Mix_Chunk* thanks = NULL;
+Mix_Chunk* startGame = NULL;
 
 const int SCREEN_WIDTH = 1720;
 const int SCREEN_HEIGHT = 1000;
@@ -70,6 +71,11 @@ void loadAudio()
     {
         printf( "Failed to load thanks music! SDL_mixer Error: %s\n", Mix_GetError() );
     }
+	startGame = Mix_LoadWAV("Audio/start.wav");
+	if(startGame == NULL)
+	{
+		printf("Failed to load start music! SDL_mixer Error: %s\n", Mix_GetError());
+	}
 	music1 = Mix_LoadMUS("Audio/music1.wav");
 	if( music1 == NULL )
     {
@@ -85,6 +91,9 @@ void musicPlayer(SDL_Event event)
 	{
 		switch( event.key.keysym.sym )
 		{
+			case SDLK_n:
+				Mix_PlayChannel(-1,startGame,0);
+				break;
 			case SDLK_m:
 				//If there is no music playing
 				if( Mix_PlayingMusic() == 0 )
@@ -453,7 +462,7 @@ Textures displayTime(int currentTime)
 	string meterText = "Time : " + to_string(minutes) + " min " + to_string(seconds) + "seconds";
 	//Open the font
 	meterFont = TTF_OpenFont( "Fonts/ABeeZee-Regular.ttf", 28 );
-	SDL_Color textColor = {0,0,0};
+	SDL_Color textColor = {204,0,102};
 	if( meterFont == NULL )
 	{
 		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );

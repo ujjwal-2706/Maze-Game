@@ -189,7 +189,7 @@ class Player
 			meterText = meterText + "Motivation : " + to_string(motivation);
 			//Open the font
 			meterFont = TTF_OpenFont( "Fonts/ABeeZee-Regular.ttf", 28 );
-			SDL_Color textColor = {0,0,0};
+			SDL_Color textColor = {0,128,255};
 			if( meterFont == NULL )
 			{
 				printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
@@ -479,28 +479,43 @@ class BackGround
 		}
 };
 
+double pointScored(int coins,int health,int stamina,int motivation)
+{
+	double value = 2 * coins + stamina + health + 0.01 * motivation;
+	return value;
+}
 
-
-
-// Now what is left is buildings, their collisions, professor and collision, ATM and collision
-// Batchmates and collision
-// Messages to be popped up with meeting people and the start instruciton and music 
-// The winning strategy and the timer
-
-// Added the rotation of player while moving
-
-// Add the feature of enter press in order to meet professor, then pop up the screen which is gone
-// after some button or mouse press, do this for 1 building then the similar logic can
-// be implemented for yulu stand, and football ground. then finally music will be left
-// for the background tiles, create another matrix coordinate
-
-
-/* Final things left to be done 
-1. Implement the background class and create a separate load media function to load all the textures
-2. Position all the texture and buildings
-3. Correct the player's movement 
-4. Implement the timer meter
-5. Implement the server and the client function
-6. Inside the main while loop create different while loop dependig on server or client
-7. send coordinates of player in each frame and render accordingly
-8. Initialize page of the game*/
+Textures displayPoints(double points)
+{
+	string val =  "Total Points : " + to_string(points);
+	Textures meter;
+	//Open the font
+	meterFont = TTF_OpenFont( "Fonts/beleq.ttf", 28 );
+	SDL_Color textColor = {204,0,102};
+	if( meterFont == NULL )
+	{
+		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+		return meter;
+	}
+	else
+	{
+		//Render text surface
+		SDL_Surface* textSurface = TTF_RenderText_Solid( meterFont, val.c_str(), textColor );
+		if( textSurface == NULL )
+		{
+			printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+			return meter;
+		}
+		else
+		{
+			SDL_Texture* display = SDL_CreateTextureFromSurface(renderer,textSurface);
+			meter.setTexture(display);
+			meter.setDimension(textSurface->w,textSurface->h);
+			SDL_FreeSurface(textSurface);
+			//global font
+			TTF_CloseFont( meterFont );
+			meterFont = NULL;
+			return meter;
+		}
+	}
+}
