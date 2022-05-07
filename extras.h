@@ -759,8 +759,8 @@ vector<Coordinates> professorCoordinates()
 	Coordinates prof;
 	prof.mapX = 4;
 	prof.mapY = 7;
-	prof.x = 1300;
-	prof.y = 700;
+	prof.x = 1000;
+	prof.y = 500;
 
 	// Coordinates prof2;
 
